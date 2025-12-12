@@ -1,0 +1,81 @@
+---
+title: "Final Project - Data Wrangling"
+format: gfm
+---
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.formula.api as smf
+import pandas as pd
+from statsmodels.iolib.summary2 import summary_col
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from statsmodels.tools.tools import add_constant
+import statsmodels.api as sm
+
+
+
+plt.figure(figsize=(10, 6))
+sns.regplot(
+    x='GA',
+    y='Rk',
+    data=EPL,
+    scatter_kws={'alpha': 0.6},
+    line_kws={'color': 'red'},
+)
+plt.title("Relationship Between League Standing and Goals Against")
+plt.xlabel("Goals Against")
+plt.ylabel("League Standing")
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+plt.ylim(0, 25)
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.show()
+
+
+
+EPL['Tkl_won_per'] = (EPL['TklW'] / EPL['Tkl']) * 100
+EPL['Exp_Mid_3rd_won'] = (EPL['Tkl_won_per']/100) * EPL['Mid 3rd']
+EPL['Mid_3rd_per'] = EPL['Exp_Mid_3rd_won'] / EPL['Mid 3rd']
+EPL['weighted_Mid_3rd_per'] = EPL['Mid_3rd_per'] * (EPL['avg_poss'] / 100)
+
+
+
+plt.figure(figsize=(10, 6))
+sns.regplot(
+    x='weighted_Mid_3rd_per',
+    y='GA',
+    data=EPL,
+    scatter_kws={'alpha': 0.6},
+    line_kws={'color': 'red'},
+)
+plt.title("Relationship Between Goals Against and Weighted Tackles Efficiency in the Mid-Third")
+plt.xlabel("Weighted Tackles Efficiency in the Mid-Third")
+plt.ylabel("Goals Against")
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+plt.tight_layout()
+plt.show()
+
+
+plt.figure(figsize=(10, 6))
+sns.regplot(
+    x='weighted_Mid_3rd_per',
+    y='GCA90',
+    data=EPL,
+    scatter_kws={'alpha': 0.6},
+    line_kws={'color': 'red'},
+)
+plt.title("Relationship Between Goals Created Actions Allowed per 90 Min and Weighted Tackles Efficiency in the Mid-Third")
+plt.xlabel("Weighted Tackles Efficiency in the Mid-Third")
+plt.ylabel("Goals Created Actions Allowed per 90 Min")
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+plt.tight_layout()
+plt.show()
+
+
+EPLGA_lm = smf.ols(formula='GA ~ weighted_Mid_3rd_per + Sh_x + Pass + Int + GCA90', data = EPL).fit()
+print(EPLGA_lm.summary())
